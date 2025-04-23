@@ -1,7 +1,7 @@
 
 # 🚕 Uber Pickups Dashboard
 
-This is an interactive Streamlit app that visualizes Uber pickup data by hour, base, weekday, and more. You can filter by date and base and explore trends easily.
+This is an interactive Streamlit app that visualizes Uber pickup data by hour, base, and more. You can filter by date and base and explore trends easily.
 
 👉 **[Try the live app here](https://uber-data-september-2014-edlgwlcfleerfxkpgpadx2.streamlit.app/)**
 
@@ -12,7 +12,6 @@ This is an interactive Streamlit app that visualizes Uber pickup data by hour, b
   - Pickups by hour
   - Pickups by base
   - Heatmap (base vs. hour)
-- Export filtered data
 - Clean, simple layout using Streamlit
 
 ## Dataset
