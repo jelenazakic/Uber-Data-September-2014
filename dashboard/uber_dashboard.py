@@ -6,7 +6,6 @@ import seaborn as sns
 import folium
 from folium.plugins import FastMarkerCluster
 
-# --- Title ---
 st.set_page_config(page_title = "Uber Data Dashboard", layout = "wide")
 st.title ("Uber Pickups in September 2014")
 
