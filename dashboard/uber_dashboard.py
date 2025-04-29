@@ -13,22 +13,12 @@ st.title ("Uber Pickups in September 2014")
 with sqlite3.connect("uber.db") as conn:
      df = pd.read_sql_query("SELECT * FROM uber_pickups", conn)
      
-locations = df[['lat', 'lon']].values.tolist()
 df['datetime'] = pd.to_datetime(df['datetime'])
 df['date'] = df['datetime'].dt.date
 df['hour'] = df['datetime'].dt.hour
 df['weekday'] = df['datetime'].dt.day_name()
 df['month'] =  df['datetime'].dt.month_name()
 
-# --- New York's map ---
-ny_map = folium.Map(location=[40.7128, -74.0060], zoom_start=12)
-FastMarkerCluster(data=locations).add_to(ny_map)
-st.subheader("Uber Pickups in New York")
-st.write("Here are the Uber pickup locations in New York City.")
-st.markdown("### Map of Uber Pickups")
-st.components.v1.html(ny_map._repr_html_(), height=500)
-
-# --- Base info ---
 base_name_map = {
     "B02512": "Unter",
     "B02598": "Hinter",
@@ -45,18 +35,6 @@ base_info = {
     "B02764": {"name": "Danach-NY", "location": "New York, NY"}
 }
 
-base_colors = {
-    'B02512': 'red',
-    'B02598': 'blue',
-    'B02617': 'green',
-    'B02682': 'purple',
-    'B02764': 'orange',
-    'B02765': 'yellow'
-}
-
-def get_base_details(base_code):
-    return base_info.get(base_code, {"name": "Unknown", "location": "Unknown"})
-
 st.metric(label="📦 Total Pickups", value=f"{len(df):,}")
 
 # --- Plotting filtered data ---
@@ -66,6 +44,15 @@ selected_base = st.sidebar.multiselect("Select base(s)", base_names, default = b
 name_to_code = {v: k for k, v in base_name_map.items()}
 selected_base = [name_to_code[name] for name in selected_base]
 filtered_df = df[(df['date'] == selected_date) & (df['base'].isin(selected_base))]
+
+def get_base_details(base_code):
+    return base_info.get(base_code, {"name": "Unknown", "location": "Unknown"})
+    
+# --- New York's map ---
+st.markdown("### Map of Uber Pickups")
+ny_map = folium.Map(location=[40.7128, -74.0060], zoom_start=12)
+FastMarkerCluster(data=filtered_df[['lat', 'lon']].values.tolist()).add_to(ny_map)
+st.components.v1.html(ny_map._repr_html_(), height=500)
 
 # --- Slider to filter by hour range ---
 st.sidebar.header("Filter by Hour Range")
@@ -80,7 +67,7 @@ st.markdown(f"- **⏰ Hour Range:** {hour_range[0]}:00 to {hour_range[1]}:00")
 st.markdown("- **🚖 Base(s):**")
 for base in selected_base:
     info = get_base_details(base)
-    st.markdown(f"  - `{base}` – **{info['name']}** ({info['location']})")
+    st.markdown(f"  - {base} – **{info['name']}** ({info['location']})")
 
 st.info(f"🔎 Showing {len(filtered_df):,} pickups based on current filters.")
 
