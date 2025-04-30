@@ -38,7 +38,20 @@ name_to_code = {info["name"]: code for code, info in base_info.items()}
 selected_base_names = st.sidebar.multiselect("Select base(s)", name_to_code)
 selected_base = [name_to_code[name] for name in selected_base_names]
 selected_base_codes = [name_to_code[name] for name in selected_base_names]
-
+code_to_color = {code: info["color"] for code, info in base_info.items()}
+if selected_base_names:
+    for name in selected_base_names:
+        code = name_to_code[name]
+        color = code_to_color[code]
+        st.sidebar.markdown(
+    f"""
+    <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <div style="width: 15px; height: 15px; border-radius: 50%; background-color: {color}; margin-right: 8px;"></div>
+        <span style="font-weight: 600; color: {color};">{name}</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
 filtered_df = df[(df['date'] == selected_date) & (df['base'].isin(selected_base_codes))]
 
 def get_base_details(base_code):
@@ -50,6 +63,7 @@ ny_map = folium.Map(location=[40.7128, -74.0060], zoom_start=12)
 
 for _, row in filtered_df.iterrows():
     base_code = row['base']
+    color = code_to_color.get(base_code, "#000000")
     base_details = get_base_details(base_code)
     base_color = base_details['color']
     folium.CircleMarker(
