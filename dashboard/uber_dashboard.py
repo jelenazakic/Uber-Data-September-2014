@@ -1,15 +1,15 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
-import matplotlib.pyplot as plt
-import seaborn as sns
 import folium
 from folium.plugins import FastMarkerCluster
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 st.set_page_config(page_title="Uber Data Dashboard", layout="wide")
 st.title("Uber Pickups in September 2014")
 
-# --- Load data from SQLite ---
+# --- Load data from SQLite --
 with sqlite3.connect("uber.db") as conn:
     df = pd.read_sql_query("SELECT * FROM uber_pickups", conn)
 
@@ -19,80 +19,80 @@ df['hour'] = df['datetime'].dt.hour
 df['weekday'] = df['datetime'].dt.day_name()
 df['month'] = df['datetime'].dt.month_name()
 
+# Base info and color mapping
 base_info = {
-    "B02512": {"name": "Unter", "location": "636 W 28th St, New York, NY"},
-    "B02598": {"name": "Hinter", "location": "New York, NY"},
-    "B02617": {"name": "Weiter", "location": "New York, NY"},
-    "B02682": {"name": "Schmecken", "location": "New York, NY"},
-    "B02764": {"name": "Danach-NY", "location": "New York, NY"}
+    "B02512": {"name": "Unter", "location": "636 W 28th St, New York, NY", "color": "#1f77b4"},  # Blue
+    "B02598": {"name": "Hinter", "location": "New York, NY", "color": "#ff7f0e"},  # Orange
+    "B02617": {"name": "Weiter", "location": "New York, NY", "color": "#2ca02c"},  # Green
+    "B02682": {"name": "Schmecken", "location": "New York, NY", "color": "#d62728"},  # Red
+    "B02764": {"name": "Danach-NY", "location": "New York, NY", "color": "#9467bd"}  # Purple
 }
 
 st.metric(label="📦 Total Pickups", value=f"{len(df):,}")
 
-# --- Sidebar Filters ---
+# --- Plotting filtered data ---
 selected_date = st.sidebar.date_input("Select a date", value=df['date'].min())
+base_codes = [code for code in df['base'].unique() if code in base_info]
 
-# Base filter
 name_to_code = {info["name"]: code for code, info in base_info.items()}
-selected_base_names = st.sidebar.multiselect(
-    "Select base(s)", name_to_code.keys(), default=list(name_to_code.keys())
-)
+selected_base_names = st.sidebar.multiselect("Select base(s)", name_to_code)
+selected_base = [name_to_code[name] for name in selected_base_names]
 selected_base_codes = [name_to_code[name] for name in selected_base_names]
-
-if not selected_base_codes:
-    st.warning("Please select at least one base.")
-    st.stop()
 
 filtered_df = df[(df['date'] == selected_date) & (df['base'].isin(selected_base_codes))]
 
-# --- Hour Range Slider ---
-st.sidebar.header("Filter by Hour Range")
-hour_range = st.sidebar.slider(
-    "Select hour range", min_value=0, max_value=23, value=(0, 23), step=1
-)
-filtered_df = filtered_df[(filtered_df['hour'] >= hour_range[0]) & (filtered_df['hour'] <= hour_range[1])]
-
-# --- Base Details Helper ---
 def get_base_details(base_code):
-    return base_info.get(base_code, {"name": "Unknown", "location": "Unknown"})
+    return base_info.get(base_code, {"name": "Unknown", "location": "Unknown", "color": "#000000"})
 
-# --- Filter Summary ---
+# --- New York's map ---
+st.markdown("### Map of Uber Pickups")
+ny_map = folium.Map(location=[40.7128, -74.0060], zoom_start=12)
+
+for _, row in filtered_df.iterrows():
+    base_code = row['base']
+    base_details = get_base_details(base_code)
+    base_color = base_details['color']
+    folium.CircleMarker(
+        location=[row['lat'], row['lon']],
+        radius=5,
+        color=base_color,          fill=True,
+        fill_color=base_color,
+        fill_opacity=0.6
+    ).add_to(ny_map)
+
+st.components.v1.html(ny_map._repr_html_(), height=500)
+
+# --- Slider to filter by hour range ---
+st.sidebar.header("Filter by Hour Range")
+hour_range = st.sidebar.slider("Select hour range", min_value=0, max_value=23, value=(0, 23), step=1)
+filtered_df_hour = filtered_df[(filtered_df['hour'] >= hour_range[0]) & (filtered_df['hour'] <= hour_range[1])]
+filtered_df = filtered_df_hour
+
+# --- Display filter summary ---
 st.markdown("### 📊 Filter Summary")
-
 col1, col2 = st.columns(2)
 with col1:
     st.markdown("**📅 Date**")
-    st.markdown(f"{selected_date.strftime('%A, %B %d, %Y')}", help="Selected pickup date")
+    st.markdown(f"{selected_date.strftime('%A, %B %d, %Y')}")
 
 with col2:
     st.markdown("**⏰ Hour Range**")
-    st.markdown(f"{hour_range[0]}:00 — {hour_range[1]}:00", help="Selected time range")
+    st.markdown(f"{hour_range[0]}:00 — {hour_range[1]}:00")
 
 st.markdown("**🚖 Selected Base(s):**")
-
 for base in selected_base_codes:
     info = get_base_details(base)
     st.markdown(
         f"""
-        <div style="padding: 4px; margin-bottom: 2px; border-radius: 8px">
+        <div style="padding: 8px; margin-bottom: 5px; border-radius: 8px;">
             <strong>{info['name']}</strong> ({base})<br>
             <span style="color: gray;">📍 {info['location']}</span>
         </div>
         """, unsafe_allow_html=True
     )
 
-st.info(f"🔎 Showing {len(filtered_df):,} pickups based on current filters.")
+st.info(f"🔎 Showing **{len(filtered_df):,}** pickups based on current filters.")
 
-# --- Map ---
-st.markdown("### 🗺️ Map of Uber Pickups")
-if not filtered_df.empty:
-    ny_map = folium.Map(location=[40.7128, -74.0060], zoom_start=12)
-    FastMarkerCluster(data=filtered_df[['lat', 'lon']].values.tolist()).add_to(ny_map)
-    st.components.v1.html(ny_map._repr_html_(), height=500)
-else:
-    st.warning("No pickup data available for the selected filters.")
-
-# --- Tabs ---
 tab1, tab2, tab3, tab4 = st.tabs([
     "Pickups by Hour", "Pickups by Hour (Line Plot)", "Pickups by Base", "Heatmap"
 ])
@@ -135,4 +135,3 @@ with tab4:
         st.pyplot(fig3)
     else:
         st.info("No data to display.")
-
