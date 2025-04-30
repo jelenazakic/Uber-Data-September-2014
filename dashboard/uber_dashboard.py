@@ -58,12 +58,28 @@ def get_base_details(base_code):
 
 # --- Filter Summary ---
 st.markdown("### 📊 Filter Summary")
-st.markdown(f"- **📅 Date:** {selected_date.strftime('%A, %B %d, %Y')}")
-st.markdown(f"- **⏰ Hour Range:** {hour_range[0]}:00 to {hour_range[1]}:00")
-st.markdown("- **🚖 Base(s):**")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown("**📅 Date**")
+    st.markdown(f"{selected_date.strftime('%A, %B %d, %Y')}", help="Selected pickup date")
+
+with col2:
+    st.markdown("**⏰ Hour Range**")
+    st.markdown(f"{hour_range[0]}:00 — {hour_range[1]}:00", help="Selected time range")
+
+st.markdown("**🚖 Selected Base(s):**")
+
 for base in selected_base_codes:
     info = get_base_details(base)
-    st.markdown(f"  - {base} – **{info['name']}** ({info['location']})")
+    st.markdown(
+        f"""
+        <div style="padding: 4px; margin-bottom: 2px; border-radius: 8px">
+            <strong>{info['name']}</strong> ({base})<br>
+            <span style="color: gray;">📍 {info['location']}</span>
+        </div>
+        """, unsafe_allow_html=True
+    )
 
 st.info(f"🔎 Showing {len(filtered_df):,} pickups based on current filters.")
 
