@@ -12,7 +12,8 @@ This is an interactive Streamlit app that visualizes Uber pickup data by hour, b
   - Pickups by hour
   - Pickups by base
   - Heatmap (base vs. hour)
-- Clean, simple layout using Streamlit
+  - Interactive New York City Map** with pickup points
+
 
 ## Dataset
 
