@@ -14,6 +14,11 @@ This is an interactive Streamlit app that visualizes Uber pickup data by hour, b
   - Heatmap (base vs. hour)
   - Interactive New York City Map** with pickup points
 
+The app includes an interactive map showing all pickup points across NYC for the selected time period. This gives a quick overview of activity hotspots and trends.
+
+- Built using `pydeck` and `folium`
+- Shows pickup **density** and **distribution** over the city
+- Helps identify high-traffic zones (e.g., Midtown, Downtown)
 
 ## Dataset
 
