@@ -6,6 +6,14 @@ from folium.plugins import FastMarkerCluster
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+base_info = {
+    "B02512": {"name": "Unter", "location": "636 W 28th St, New York, NY", "color": "#1f77b4"},
+    "B02598": {"name": "Hinter", "location": "New York, NY", "color": "#ff7f0e"},
+    "B02617": {"name": "Weiter", "location": "New York, NY", "color": "#2ca02c"},
+    "B02682": {"name": "Schmecken", "location": "New York, NY", "color": "#d62728"},
+    "B02764": {"name": "Danach-NY", "location": "New York, NY", "color": "#9467bd"}
+}
+
 st.set_page_config(page_title="Uber Data Dashboard", layout="wide")
 st.title("Uber Pickups in September 2014")
 
@@ -18,15 +26,6 @@ df['date'] = df['datetime'].dt.date
 df['hour'] = df['datetime'].dt.hour
 df['weekday'] = df['datetime'].dt.day_name()
 df['month'] = df['datetime'].dt.month_name()
-
-# Base info and color mapping
-base_info = {
-    "B02512": {"name": "Unter", "location": "636 W 28th St, New York, NY", "color": "#1f77b4"},  # Blue
-    "B02598": {"name": "Hinter", "location": "New York, NY", "color": "#ff7f0e"},  # Orange
-    "B02617": {"name": "Weiter", "location": "New York, NY", "color": "#2ca02c"},  # Green
-    "B02682": {"name": "Schmecken", "location": "New York, NY", "color": "#d62728"},  # Red
-    "B02764": {"name": "Danach-NY", "location": "New York, NY", "color": "#9467bd"}  # Purple
-}
 
 st.metric(label="📦 Total Pickups", value=f"{len(df):,}")
 
@@ -83,7 +82,7 @@ filtered_df_hour = filtered_df[(filtered_df['hour'] >= hour_range[0]) & (filtere
 filtered_df = filtered_df_hour
 
 # --- Display filter summary ---
-st.markdown("### 📊 Filter Summary")
+st.markdown("**📊 Filter Summary**")
 col1, col2 = st.columns(2)
 with col1:
     st.markdown("**📅 Date**")
@@ -117,7 +116,6 @@ with tab1:
         fig, ax = plt.subplots()
         filtered_df.groupby('hour').size().plot(kind='bar', ax=ax)
         ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True, prune='both'))
-        ax.grid(True, axis='y', linestyle='--', alpha=0.7)
         st.pyplot(fig)
     else:
         st.info("No data to display.")
