@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import folium
 from folium.plugins import FastMarkerCluster
+from folium.plugins import HeatMap
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -81,6 +82,21 @@ hour_range = st.sidebar.slider("Select hour range", min_value=0, max_value=23, v
 filtered_df_hour = filtered_df[(filtered_df['hour'] >= hour_range[0]) & (filtered_df['hour'] <= hour_range[1])]
 filtered_df = filtered_df_hour
 
+st.markdown("### 🔝 Top 5 Busiest Hours per Base")
+
+if not filtered_df.empty:
+    for base_code in selected_base_codes:
+        base_name = get_base_details(base_code)['name']
+        base_color = get_base_details(base_code)['color']
+        
+        base_df = filtered_df[filtered_df['base'] == base_code]
+        top_hours = base_df['hour'].value_counts().nlargest(5).sort_index()
+
+        st.markdown(f"**{base_name} ({base_code})**")
+        st.bar_chart(top_hours)
+else:
+    st.info("No data available for the selected filters.")
+
 # --- Display filter summary ---
 st.markdown("**📊 Filter Summary**")
 col1, col2 = st.columns(2)
@@ -147,3 +163,9 @@ with tab4:
         st.pyplot(fig3)
     else:
         st.info("No data to display.")
+
+heat_df = filtered_df[['lat', 'lon']].dropna()
+m_heat = folium.Map(location=[40.7128, -74.0060], zoom_start=12)
+HeatMap(heat_df.values, radius=8).add_to(m_heat)
+st.markdown("### Pickup Density Heatmap")
+st.components.v1.html(m_heat._repr_html_(), height=500)
