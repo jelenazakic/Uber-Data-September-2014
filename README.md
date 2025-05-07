@@ -9,11 +9,11 @@ This is an interactive Streamlit app that visualizes Uber pickup data by hour, b
 
 - Filter by date and base
 - Visualizations for:
+  - Top 5 Busiest Hours Per Base
   - Pickups by hour
   - Pickups by base
   - Heatmap (base vs. hour)
-  - Interactive New York City Map** with pickup points
-  - Top 5 Busiest Hours Per Base
+  - Interactive New York City Map with pickup points
   - Pickup Density Heatmap
 
 The app includes an interactive map showing all pickup points across NYC for the selected time period. This gives a quick overview of activity hotspots and trends.
